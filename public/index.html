@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UNO Online</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- ── Join Screen ───────────────────────────────────────────── -->
+  <div id="join-screen" class="screen active">
+    <div class="join-container">
+      <h1 class="logo">UNO</h1>
+      <p class="subtitle">Online Multiplayer</p>
+      <div class="join-form">
+        <input type="text" id="player-name" placeholder="Enter your name" maxlength="16" autocomplete="off">
+        <button id="join-btn" class="btn btn-primary">Join Game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Lobby Screen ──────────────────────────────────────────── -->
+  <div id="lobby-screen" class="screen">
+    <div class="lobby-container">
+      <h2>Game Lobby</h2>
+      <div class="lobby-players">
+        <h3>Players <span id="player-count">(0/10)</span></h3>
+        <ul id="player-list"></ul>
+      </div>
+      <div id="host-controls" class="host-controls" style="display:none;">
+        <button id="add-ai-btn" class="btn btn-secondary">+ Add AI</button>
+        <div class="variant-select">
+          <label for="variant">Game Mode:</label>
+          <select id="variant">
+            <option value="classic">Classic UNO</option>
+            <option value="stackable">UNO Stackable</option>
+            <option value="sevenZero">UNO 7-0 Rule</option>
+            <option value="flip">UNO Flip</option>
+            <option value="noMercy">UNO No Mercy</option>
+            <option value="attack">UNO Attack</option>
+            <option value="jumpIn">UNO Jump-In</option>
+            <option value="elimination">UNO Elimination</option>
+            <option value="team">UNO Team (2v2)</option>
+          </select>
+          <button id="how-to-play-btn" class="btn btn-small">How to Play</button>
+        </div>
+        <button id="start-btn" class="btn btn-primary btn-large">Start Game</button>
+      </div>
+      <div id="waiting-msg" style="display:none;">
+        <p>Waiting for host to start the game...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Game Screen ───────────────────────────────────────────── -->
+  <div id="game-screen" class="screen">
+    <div class="game-header">
+      <div class="game-info">
+        <span id="game-variant" class="variant-badge"></span>
+        <span id="game-direction" class="direction-indicator"></span>
+        <span id="draw-stack-display" class="draw-stack" style="display:none;"></span>
+      </div>
+      <div class="game-actions-top">
+        <button id="how-to-play-game-btn" class="btn btn-small">?</button>
+        <button id="uno-btn" class="btn btn-uno" style="display:none;">UNO!</button>
+      </div>
+    </div>
+
+    <!-- Opponents -->
+    <div id="opponents" class="opponents"></div>
+
+    <!-- Table center -->
+    <div class="table-center">
+      <div class="pile draw-pile" id="draw-pile">
+        <div class="card card-back">
+          <span class="deck-count" id="deck-count">0</span>
+        </div>
+        <span class="pile-label">Draw</span>
+      </div>
+      <div class="pile discard-pile" id="discard-pile">
+        <div class="card" id="top-card"></div>
+        <span class="pile-label">Discard</span>
+      </div>
+      <div id="current-color-indicator" class="color-indicator"></div>
+    </div>
+
+    <!-- Player hand -->
+    <div class="player-hand-area">
+      <div id="turn-indicator" class="turn-indicator"></div>
+      <div id="player-hand" class="player-hand"></div>
+      <div id="pass-btn-area" class="pass-btn-area" style="display:none;">
+        <button id="pass-btn" class="btn btn-secondary">Pass Turn</button>
+      </div>
+    </div>
+
+    <!-- Game log -->
+    <div id="game-log" class="game-log"></div>
+  </div>
+
+  <!-- ── Game Over Screen ──────────────────────────────────────── -->
+  <div id="gameover-screen" class="screen">
+    <div class="gameover-container">
+      <h2 id="gameover-title">Game Over</h2>
+      <div id="gameover-details"></div>
+      <button id="back-to-lobby-btn" class="btn btn-primary">Back to Lobby</button>
+    </div>
+  </div>
+
+  <!-- ── Color Picker Modal ────────────────────────────────────── -->
+  <div id="color-picker-modal" class="modal" style="display:none;">
+    <div class="modal-content color-picker">
+      <h3>Choose a Color</h3>
+      <div class="color-options" id="color-options">
+        <button class="color-btn color-red" data-color="red"></button>
+        <button class="color-btn color-blue" data-color="blue"></button>
+        <button class="color-btn color-green" data-color="green"></button>
+        <button class="color-btn color-yellow" data-color="yellow"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Swap Target Modal (7-0 Rule) ─────────────────────────── -->
+  <div id="swap-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3>Choose a player to swap hands with</h3>
+      <div id="swap-targets"></div>
+    </div>
+  </div>
+
+  <!-- ── Wild Draw 4 Challenge Modal ──────────────────────────── -->
+  <div id="challenge-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <h3>Wild Draw 4 played on you!</h3>
+      <p>Do you want to challenge it?</p>
+      <p class="small">If the challenge succeeds, the player who played it draws 4 instead.<br>If it fails, you draw 6 (4 + 2 penalty).</p>
+      <div class="modal-buttons">
+        <button id="challenge-yes" class="btn btn-danger">Challenge</button>
+        <button id="challenge-no" class="btn btn-secondary">Accept (Draw 4)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── How to Play Modal ─────────────────────────────────────── -->
+  <div id="how-to-play-modal" class="modal" style="display:none;">
+    <div class="modal-content modal-large">
+      <button class="modal-close" id="htp-close">&times;</button>
+      <div id="htp-content"></div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="js/client.js"></script>
+</body>
+</html>

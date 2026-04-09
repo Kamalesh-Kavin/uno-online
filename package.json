@@ -1,0 +1,25 @@
+{
+  "name": "uno-online",
+  "version": "1.0.0",
+  "description": "Online multiplayer UNO supporting 9 variants with AI and human players",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
+  },
+  "keywords": [
+    "uno",
+    "card-game",
+    "multiplayer",
+    "socket.io"
+  ],
+  "author": "Kamalesh",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^5.1.0",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "socket.io-client": "^4.8.3"
+  }
+}

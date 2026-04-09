@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: uno-online
+    runtime: node
+    buildCommand: npm install
+    startCommand: node server/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
