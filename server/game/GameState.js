@@ -53,6 +53,10 @@ class GameState {
     this.pendingWild4 = null; // { playerId, previousColor } for challenge
     this.winner = null;
     this.gameLog = [];
+
+    // Stalemate detection — if no hand size decreases for too many turns, end the game
+    this.stalemateTurns = 0;
+    this.lastMinHandSize = Infinity;
   }
 
   // ── Start the game ──────────────────────────────────────────────
@@ -183,6 +187,22 @@ class GameState {
     // Check if this player needs to handle a draw stack (stackable/noMercy)
     if (this.drawStack > 0 && this.rules.canStack) {
       this.turnPhase = 'play'; // they can stack or must draw
+    }
+
+    // Stalemate detection — if no progress for 200 turns, smallest hand wins
+    const minHand = Math.min(...active.map(p => p.hand.length));
+    if (minHand < this.lastMinHandSize) {
+      this.lastMinHandSize = minHand;
+      this.stalemateTurns = 0;
+    } else {
+      this.stalemateTurns++;
+      if (this.stalemateTurns >= 200) {
+        // Declare winner: player with fewest cards (tie-break: first in array)
+        const sorted = [...active].sort((a, b) => a.hand.length - b.hand.length);
+        this.winner = sorted[0];
+        this.status = 'finished';
+        this.log(`Stalemate detected after ${this.stalemateTurns} turns without progress. ${this.winner.name} wins with the fewest cards (${this.winner.hand.length}).`);
+      }
     }
   }
 
