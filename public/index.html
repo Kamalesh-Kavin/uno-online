@@ -62,7 +62,6 @@
       </div>
       <div class="game-actions-top">
         <button id="how-to-play-game-btn" class="btn btn-small">?</button>
-        <button id="uno-btn" class="btn btn-uno" style="display:none;">UNO!</button>
       </div>
     </div>
 
@@ -88,10 +87,19 @@
     <div class="player-hand-area">
       <div id="turn-indicator" class="turn-indicator"></div>
       <div id="player-hand" class="player-hand"></div>
-      <div id="pass-btn-area" class="pass-btn-area" style="display:none;">
-        <button id="pass-btn" class="btn btn-secondary">Pass Turn</button>
+      <div class="hand-actions">
+        <div id="pass-btn-area" class="pass-btn-area" style="display:none;">
+          <button id="pass-btn" class="btn btn-secondary">Pass Turn</button>
+        </div>
+        <button id="uno-btn" class="btn btn-uno" style="display:none;">UNO!</button>
       </div>
     </div>
+
+    <!-- Floating UNO announcement -->
+    <div id="uno-announce" class="uno-announce" style="display:none;">UNO!</div>
+
+    <!-- Floating Caught announcement -->
+    <div id="caught-announce" class="caught-announce" style="display:none;"></div>
 
     <!-- Game log -->
     <div id="game-log" class="game-log"></div>

@@ -51,10 +51,14 @@ function nextAIName() {
 
 // ── AI turn loop ────────────────────────────────────────────────────
 let aiTimer = null;
+let aiCatchTimer = null;
 
 function scheduleAITurn() {
   if (aiTimer) clearTimeout(aiTimer);
   if (!game || game.status !== 'playing') return;
+
+  // Also check if any AI can catch someone who forgot UNO
+  scheduleAICatchUno();
 
   const current = game.getCurrentPlayer();
   if (!current || !current.isAI) return;
@@ -67,6 +71,38 @@ function scheduleAITurn() {
     const action = AI.decide(game, cp.id);
     executeAction(cp.id, action);
   }, 800 + Math.random() * 600); // 0.8-1.4s delay for natural feel
+}
+
+// AI checks for uncalled UNO and catches them
+function scheduleAICatchUno() {
+  if (aiCatchTimer) clearTimeout(aiCatchTimer);
+  if (!game || game.status !== 'playing') return;
+
+  aiCatchTimer = setTimeout(() => {
+    if (!game || game.status !== 'playing') return;
+
+    // Find any player with 1 card who hasn't called UNO
+    const uncalled = game.players.filter(p =>
+      !p.isEliminated && p.hand.length === 1 && !p.calledUno
+    );
+    if (uncalled.length === 0) return;
+
+    // Pick a random AI to do the catching (70% chance any AI notices)
+    const aiPlayers = lobby.players.filter(p => p.isAI);
+    if (aiPlayers.length === 0) return;
+
+    for (const target of uncalled) {
+      if (Math.random() < 0.7) {
+        const catcher = aiPlayers[Math.floor(Math.random() * aiPlayers.length)];
+        const result = game.challengeUno(catcher.id, target.id);
+        if (result && result.success) {
+          io.emit('action', { player: getPlayerName(catcher.id), ...result });
+          broadcastGameState();
+        }
+        break; // only catch one per check
+      }
+    }
+  }, 1500 + Math.random() * 1000); // 1.5-2.5s delay to notice
 }
 
 function executeAction(playerId, action) {

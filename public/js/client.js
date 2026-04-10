@@ -257,7 +257,7 @@ function renderGame(state) {
 
     // Challenge UNO button
     let challengeBtn = '';
-    if (p.cardCount === 1 && !p.calledUno && !p.isAI) {
+    if (p.cardCount === 1 && !p.calledUno) {
       challengeBtn = `<button class="btn btn-small btn-danger challenge-uno-btn" data-target="${p.id}">Catch!</button>`;
     }
 
@@ -298,11 +298,15 @@ function renderGame(state) {
 
   // Turn indicator
   const turnEl = $('#turn-indicator');
+  const hasTwoCards = me && me.hand && me.hand.length === 2 && !me.calledUno;
+  const hasOneCardUncalled = me && me.hand && me.hand.length === 1 && !me.calledUno;
   if (isMyTurn) {
     turnEl.textContent = state.turnPhase === 'chooseSwapTarget' ? 'Choose a player to swap hands with!' :
       state.turnPhase === 'challengeWild4' ? 'Wild Draw 4! Challenge or Accept?' :
       state.drawStack > 0 ? `Stack +${state.drawStack} on you! Play a draw card or click Draw to accept.` :
       hasDrawnThisTurn ? 'You drew a card. Play it or pass.' :
+      hasTwoCards ? 'Call UNO before playing your second-to-last card!' :
+      hasOneCardUncalled ? 'Call UNO now or you can be caught!' :
       'Your turn! Play a card or draw.';
     turnEl.className = 'turn-indicator your-turn';
   } else {
@@ -313,9 +317,9 @@ function renderGame(state) {
 
   // UNO button visibility
   const unoBtn = $('#uno-btn');
-  if (me && me.hand && me.hand.length === 2 && !me.calledUno && isMyTurn) {
+  if (hasTwoCards && isMyTurn) {
     unoBtn.style.display = 'inline-block';
-  } else if (me && me.hand && me.hand.length === 1 && !me.calledUno) {
+  } else if (hasOneCardUncalled) {
     unoBtn.style.display = 'inline-block';
   } else {
     unoBtn.style.display = 'none';
@@ -411,6 +415,29 @@ function addLogEntry(text) {
   setTimeout(() => entry.classList.remove('log-highlight'), 2000);
 }
 
+// ── Floating announcements ──────────────────────────────────────────
+function showUnoAnnounce() {
+  const el = $('#uno-announce');
+  el.classList.remove('show');
+  el.style.display = 'none';
+  // Force reflow to restart animation
+  void el.offsetWidth;
+  el.style.display = 'block';
+  el.classList.add('show');
+  setTimeout(() => { el.classList.remove('show'); el.style.display = 'none'; }, 1600);
+}
+
+function showCaughtAnnounce(playerName) {
+  const el = $('#caught-announce');
+  el.textContent = `${playerName} CAUGHT!`;
+  el.classList.remove('show');
+  el.style.display = 'none';
+  void el.offsetWidth;
+  el.style.display = 'block';
+  el.classList.add('show');
+  setTimeout(() => { el.classList.remove('show'); el.style.display = 'none'; }, 2100);
+}
+
 // ── Socket events ───────────────────────────────────────────────────
 socket.on('connect', () => {
   myId = socket.id;
@@ -487,8 +514,10 @@ socket.on('action', (data) => {
     addLogEntry(`${data.player} drew ${data.count} cards from the stack!`);
   } else if (data.type === 'callUno') {
     addLogEntry(`${data.player} called UNO!`);
+    showUnoAnnounce();
   } else if (data.type === 'unoPenalty') {
     addLogEntry(`${data.target} was caught not calling UNO! Drew ${data.count} penalty cards.`);
+    showCaughtAnnounce(data.target);
   } else if (data.type === 'jumpIn') {
     addLogEntry(`${data.player} jumped in with ${data.card.color} ${data.card.value}!`);
   } else if (data.type === 'swapHands') {
